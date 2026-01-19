@@ -168,8 +168,8 @@
                 <canvas class="scratch-canvas"></canvas>
             </div>
 
-            <div class="scratch-container motosega-style" onclick="selectGift('Nuova Motosega ⚙️')">
-                <div class="card-content"><div class="emoji">⚙️</div><div class="card-info"><h3>Nuova Motosega</h3></div></div>
+            <div class="scratch-container motosega-style" onclick="selectGift('Motosega Nuova ⚙️')">
+                <div class="card-content"><div class="emoji">⚙️</div><div class="card-info"><h3>Motosega Nuova</h3></div></div>
                 <canvas class="scratch-canvas"></canvas>
             </div>
         </div>
@@ -235,6 +235,7 @@
                 ctx.fillText('GRATTA QUI', width/2, height/2 + 6);
 
                 let isDrawing = false;
+                let moved = false; // indica se durante il drawing c'è stato movimento (scratch)
 
                 const scratch = (e) => {
                     if (!isDrawing) return;
@@ -249,10 +250,26 @@
                     ctx.beginPath();
                     ctx.arc(x, y, 25, 0, Math.PI * 2);
                     ctx.fill();
+
+                    moved = true; // abbiamo effettivamente graffiato
                 };
 
-                const startDrawing = (e) => { e.preventDefault && e.preventDefault(); isDrawing = true; };
-                const stopDrawing = () => isDrawing = false;
+                const startDrawing = (e) => { 
+                    e.preventDefault && e.preventDefault(); 
+                    isDrawing = true; 
+                    moved = false; // reset movimento all'inizio
+                };
+                const stopDrawing = () => {
+                    // se l'utente non ha mosso (tap), simula il click sul container per selezionare il regalo
+                    if (!moved) {
+                        try {
+                            // Invoca il click del container (attiva l'onclick inline selectGift se presente)
+                            container.click();
+                        } catch (err) {}
+                    }
+                    isDrawing = false;
+                    moved = false;
+                };
 
                 // Usa named handlers per evitare multipli handlers se la funzione viene chiamata ripetutamente
                 canvas.addEventListener('mousedown', startDrawing);
@@ -307,7 +324,6 @@
             document.getElementById('final-gift-name').innerText = selectedName;
             startTimer();
         }
-
         
         function startTimer() {
             if (timerInterval) clearInterval(timerInterval);
