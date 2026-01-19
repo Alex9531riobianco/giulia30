@@ -3,49 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Top Secret: Regalo Giulia</title>
+    <title>Un Regalo per Giulia</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
-        :root { --primary: #2d3436; --accent: #6c5ce7; --bg: #f9f9fb; --hacker: #00ff41; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; color: var(--primary); overflow-x: hidden; }
-
-        /* Loader */
-        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; color: var(--hacker); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; font-family: monospace; }
-        .progress-container { width: 70%; border: 1px solid var(--hacker); height: 10px; margin-top: 20px; }
-        #progress-bar { width: 0%; height: 100%; background: var(--hacker); }
-
-        /* Main Content */
-        #main-content { display: none; width: 100%; max-width: 450px; padding: 20px; box-sizing: border-box; }
-        header { text-align: center; margin-bottom: 20px; }
+        :root { --primary: #2d3436; --accent: #6c5ce7; --bg: #f9f9fb; }
         
-        /* Gratta e Vinci Style */
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            background: var(--bg); 
+            margin: 0; 
+            padding: 0; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            min-height: 100vh; 
+            color: var(--primary); 
+        }
+
+        /* Contenuto Principale */
+        #main-content { 
+            width: 100%; 
+            max-width: 450px; 
+            padding: 20px; 
+            box-sizing: border-box; 
+            animation: fadeIn 0.8s ease-in;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        header { text-align: center; margin-bottom: 30px; margin-top: 20px; }
+        h1 { font-size: 1.8rem; margin-bottom: 5px; color: var(--accent); }
+        .subtitle { color: #636e72; font-size: 1rem; }
+
+        /* Gratta e Vinci */
         .grid { display: grid; gap: 15px; width: 100%; }
-        .scratch-container { position: relative; width: 100%; height: 90px; border-radius: 15px; overflow: hidden; background: #eee; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .card-content { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; align-items: center; padding: 0 20px; box-sizing: border-box; background: white; z-index: 1; }
-        .scratch-canvas { position: absolute; top: 0; left: 0; z-index: 2; cursor: crosshair; touch-action: none; }
-
-        .emoji { font-size: 2rem; margin-right: 15px; }
-        .card-info h3 { margin: 0; font-size: 1.1rem; }
+        .scratch-container { 
+            position: relative; 
+            width: 100%; 
+            height: 90px; 
+            border-radius: 15px; 
+            overflow: hidden; 
+            background: #eee; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+        }
         
-        #confirm-btn { display: none; background: var(--accent); color: white; border: none; padding: 18px; border-radius: 50px; font-weight: bold; width: 100%; margin-top: 25px; cursor: pointer; }
+        .card-content { 
+            position: absolute; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            display: flex; 
+            align-items: center; 
+            padding: 0 20px; 
+            box-sizing: border-box; 
+            background: white; 
+            z-index: 1; 
+        }
+        
+        .scratch-canvas { 
+            position: absolute; 
+            top: 0; left: 0; 
+            z-index: 2; 
+            cursor: crosshair; 
+            touch-action: none; 
+        }
 
-        /* Final Screen & Timer */
-        #final-screen { display: none; text-align: center; padding: 40px 20px; }
-        .receipt { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); border: 2px dashed #ddd; }
-        #timer { font-family: monospace; font-size: 1.5rem; color: #d63031; background: #fff1f1; padding: 10px; border-radius: 10px; margin: 15px 0; display: inline-block; }
+        .emoji { font-size: 2.2rem; margin-right: 15px; }
+        .card-info h3 { margin: 0; font-size: 1.1rem; }
+
+        /* Bottone Conferma */
+        #confirm-btn { 
+            display: none; 
+            background: var(--accent); 
+            color: white; 
+            border: none; 
+            padding: 18px; 
+            border-radius: 50px; 
+            font-weight: bold; 
+            width: 100%; 
+            margin-top: 25px; 
+            cursor: pointer; 
+            box-shadow: 0 10px 20px rgba(108, 92, 231, 0.2);
+        }
+
+        /* Schermata Finale */
+        #final-screen { display: none; text-align: center; padding: 40px 20px; width: 100%; max-width: 450px; }
+        .receipt { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 20px; 
+            box-shadow: 0 15px 40px rgba(0,0,0,0.1); 
+            border: 2px dashed #ddd; 
+        }
+        
+        #timer { 
+            font-family: monospace; 
+            font-size: 1.6rem; 
+            color: #d63031; 
+            background: #fff1f1; 
+            padding: 10px 20px; 
+            border-radius: 10px; 
+            margin: 15px 0; 
+            display: inline-block; 
+            font-weight: bold;
+        }
+
+        .motosega-style { border: 1px dashed #ff9800 !important; }
     </style>
 </head>
 <body>
 
-    <div id="loader">
-        <div id="loader-text">INIZIALIZZAZIONE...</div>
-        <div class="progress-container"><div id="progress-bar"></div></div>
-    </div>
-
     <div id="main-content">
         <header>
-            <h1>Ciao Giulia! 🎂</h1>
-            <p>Gratta per scoprire le opzioni:</p>
+            <h1>Buon Compleanno Giulia! 🎂</h1>
+            <p class="subtitle">Gratta per scoprire le tue opzioni regalo:</p>
         </header>
 
         <div class="grid">
@@ -53,17 +123,25 @@
                 <div class="card-content"><div class="emoji">✈️</div><div class="card-info"><h3>Buono Viaggio</h3></div></div>
                 <canvas class="scratch-canvas"></canvas>
             </div>
+
             <div class="scratch-container" onclick="selectGift('Buono Gioielli 💎')">
                 <div class="card-content"><div class="emoji">💎</div><div class="card-info"><h3>Buono Gioielli</h3></div></div>
                 <canvas class="scratch-canvas"></canvas>
             </div>
+
             <div class="scratch-container" onclick="selectGift('Cena Stellata ⭐️')">
                 <div class="card-content"><div class="emoji">⭐️</div><div class="card-info"><h3>Cena Stellata</h3></div></div>
                 <canvas class="scratch-canvas"></canvas>
             </div>
-            <div class="scratch-container" onclick="selectGift('Nuova Motosega ⚙️')">
+
+            <div class="scratch-container" onclick="selectGift('Buono Shopping 🛍️')">
+                <div class="card-content"><div class="emoji">🛍️</div><div class="card-info"><h3>Buono Shopping</h3></div></div>
+                <canvas class="scratch-canvas"></canvas>
+            </div>
+
+            <div class="scratch-container motosega-style" onclick="selectGift('Nuova Motosega ⚙️')">
                 <div class="card-content"><div class="emoji">⚙️</div><div class="card-info"><h3>Nuova Motosega</h3></div></div>
-                <canvas class="scratch-canvas" style="filter: sepia(1) hue-rotate(15deg);"></canvas>
+                <canvas class="scratch-canvas"></canvas>
             </div>
         </div>
 
@@ -72,34 +150,22 @@
 
     <div id="final-screen">
         <div class="receipt">
+            <div style="font-size: 3rem; margin-bottom: 10px;">🎉</div>
             <h2>Ottima scelta!</h2>
-            <div id="final-gift-name" style="font-size: 1.8rem; font-weight: bold; color: var(--accent);"></div>
+            <p>Hai ufficialmente riscattato:</p>
+            <div id="final-gift-name" style="font-size: 1.8rem; font-weight: bold; color: var(--accent); margin: 15px 0;"></div>
             <p>Il buono scadrà tra:</p>
             <div id="timer">23:59:59</div>
-            <p style="font-size: 0.8rem; color: #636e72;">Fai uno screenshot prima che scada!</p>
+            <p style="font-size: 0.85rem; color: #636e72;">Fai uno screenshot ora e inviamelo!</p>
         </div>
     </div>
 
     <script>
         let selectedName = "";
 
-        // Gestione Loader
-        window.onload = () => {
-            let width = 0;
-            const interval = setInterval(() => {
-                if (width >= 100) {
-                    clearInterval(interval);
-                    document.getElementById('loader').style.display = 'none';
-                    document.getElementById('main-content').style.display = 'block';
-                    initScratchCards();
-                } else {
-                    width++;
-                    document.getElementById('progress-bar').style.width = width + '%';
-                }
-            }, 20);
-        };
+        // Inizializza le card appena la pagina carica
+        window.onload = initScratchCards;
 
-        // Funzione Gratta e Vinci
         function initScratchCards() {
             const canvases = document.querySelectorAll('.scratch-canvas');
             canvases.forEach(canvas => {
@@ -108,29 +174,35 @@
                 canvas.width = container.offsetWidth;
                 canvas.height = container.offsetHeight;
 
-                // Colore della patina da grattare
-                ctx.fillStyle = '#bdc3c7';
+                ctx.fillStyle = '#bdc3c7'; // Colore grigio della patina
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = '#95a5a6';
-                ctx.font = '14px Arial';
-                ctx.fillText('GRATTA QUI', canvas.width/2 - 40, canvas.height/2 + 5);
+                
+                ctx.fillStyle = '#7f8c8d';
+                ctx.font = 'bold 16px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('GRATTA QUI', canvas.width/2, canvas.height/2 + 6);
 
                 let isDrawing = false;
+
                 const scratch = (e) => {
                     if (!isDrawing) return;
                     const rect = canvas.getBoundingClientRect();
                     const x = (e.clientX || e.touches[0].clientX) - rect.left;
                     const y = (e.clientY || e.touches[0].clientY) - rect.top;
+                    
                     ctx.globalCompositeOperation = 'destination-out';
                     ctx.beginPath();
                     ctx.arc(x, y, 25, 0, Math.PI * 2);
                     ctx.fill();
                 };
 
-                canvas.addEventListener('mousedown', () => isDrawing = true);
-                canvas.addEventListener('touchstart', () => isDrawing = true);
-                window.addEventListener('mouseup', () => isDrawing = false);
-                window.addEventListener('touchend', () => isDrawing = false);
+                const startDrawing = () => isDrawing = true;
+                const stopDrawing = () => isDrawing = false;
+
+                canvas.addEventListener('mousedown', startDrawing);
+                canvas.addEventListener('touchstart', startDrawing);
+                window.addEventListener('mouseup', stopDrawing);
+                window.addEventListener('touchend', stopDrawing);
                 canvas.addEventListener('mousemove', scratch);
                 canvas.addEventListener('touchmove', scratch);
             });
@@ -138,22 +210,22 @@
 
         function selectGift(name) {
             selectedName = name;
-            confetti({ particleCount: 30, origin: { y: 0.8 } });
-            document.getElementById('confirm-btn').style.display = 'block';
-            document.getElementById('confirm-btn').innerText = "RISCATTA " + name;
+            confetti({ particleCount: 40, spread: 60, origin: { y: 0.8 } });
+            const btn = document.getElementById('confirm-btn');
+            btn.style.display = 'block';
+            btn.innerText = "CONFERMA: " + name;
         }
 
         function confirmSelection() {
-            confetti({ particleCount: 200, spread: 70 });
+            confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });
             document.getElementById('main-content').style.display = 'none';
             document.getElementById('final-screen').style.display = 'block';
             document.getElementById('final-gift-name').innerText = selectedName;
             startTimer();
         }
 
-        // Funzione Timer
         function startTimer() {
-            let time = 24 * 60 * 60; // 24 ore in secondi
+            let time = 24 * 60 * 60;
             const display = document.getElementById('timer');
             setInterval(() => {
                 let h = Math.floor(time / 3600);
