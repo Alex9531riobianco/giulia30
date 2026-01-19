@@ -20,6 +20,27 @@
             color: var(--primary); 
         }
 
+        /* Splash iniziale */
+        #splash {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #ffeaa7 0%, #fd79a8 100%);
+            color: var(--primary);
+            z-index: 9999;
+            cursor: pointer;
+            transition: opacity 400ms ease;
+            text-align: center;
+            padding: 20px;
+        }
+        #splash.hidden { opacity: 0; pointer-events: none; }
+        .splash-cake { font-size: 5rem; margin-bottom: 12px; }
+        .splash-title { font-size: 2.4rem; font-weight: 700; color: #2d3436; margin: 0; }
+        .splash-sub { color: rgba(45,52,54,0.85); margin-top: 8px; }
+
         /* Contenuto Principale */
         #main-content { 
             width: 100%; 
@@ -27,6 +48,7 @@
             padding: 20px; 
             box-sizing: border-box; 
             animation: fadeIn 0.8s ease-in;
+            display: none; /* ora nascosto fino a click splash */
         }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -112,7 +134,14 @@
 </head>
 <body>
 
-    <div id="main-content">
+    <!-- Splash iniziale -->
+    <div id="splash" onclick="enterGiftSelection()" role="button" aria-label="Apri selezione regalo">
+        <div class="splash-cake">🎂</div>
+        <h1 class="splash-title">Tanti auguri Giulia!</h1>
+        <p class="splash-sub">Clicca qui per scoprire il tuo regalo 🎁</p>
+    </div>
+
+    <div id="main-content" aria-hidden="true">
         <header>
             <h1>Buon Compleanno Giulia! 🎂</h1>
             <p class="subtitle">Gratta per scoprire le tue opzioni regalo:</p>
@@ -162,33 +191,59 @@
 
     <script>
         let selectedName = "";
+        let timerInterval = null;
 
-        // Inizializza le card appena la pagina carica
-        window.onload = initScratchCards;
+        // Funzione chiamata dal click sullo splash
+        function enterGiftSelection() {
+            // piccola celebrazione
+            try { confetti({ particleCount: 60, spread: 80, origin: { y: 0.6 } }); } catch(e) {}
+            const splash = document.getElementById('splash');
+            splash.classList.add('hidden');
+            // dopo la transizione nascondi completamente e mostra contenuto principale
+            setTimeout(() => {
+                splash.style.display = 'none';
+                const main = document.getElementById('main-content');
+                main.style.display = 'block';
+                main.setAttribute('aria-hidden', 'false');
+                initScratchCards();
+            }, 420);
+        }
 
         function initScratchCards() {
             const canvases = document.querySelectorAll('.scratch-canvas');
             canvases.forEach(canvas => {
                 const ctx = canvas.getContext('2d');
                 const container = canvas.parentElement;
-                canvas.width = container.offsetWidth;
-                canvas.height = container.offsetHeight;
+                // dimensiona il canvas in base al contenitore (supporta retina se necessario)
+                const ratio = window.devicePixelRatio || 1;
+                const width = container.offsetWidth;
+                const height = container.offsetHeight;
+                canvas.width = Math.floor(width * ratio);
+                canvas.height = Math.floor(height * ratio);
+                canvas.style.width = width + 'px';
+                canvas.style.height = height + 'px';
+                ctx.scale(ratio, ratio);
 
+                // ri-disegna la patina
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.fillStyle = '#bdc3c7'; // Colore grigio della patina
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillRect(0, 0, width, height);
                 
                 ctx.fillStyle = '#7f8c8d';
                 ctx.font = 'bold 16px sans-serif';
                 ctx.textAlign = 'center';
-                ctx.fillText('GRATTA QUI', canvas.width/2, canvas.height/2 + 6);
+                ctx.fillText('GRATTA QUI', width/2, height/2 + 6);
 
                 let isDrawing = false;
 
                 const scratch = (e) => {
                     if (!isDrawing) return;
                     const rect = canvas.getBoundingClientRect();
-                    const x = (e.clientX || e.touches[0].clientX) - rect.left;
-                    const y = (e.clientY || e.touches[0].clientY) - rect.top;
+                    const clientX = (e.clientX !== undefined) ? e.clientX : (e.touches && e.touches[0] && e.touches[0].clientX);
+                    const clientY = (e.clientY !== undefined) ? e.clientY : (e.touches && e.touches[0] && e.touches[0].clientY);
+                    if (clientX == null || clientY == null) return;
+                    const x = clientX - rect.left;
+                    const y = clientY - rect.top;
                     
                     ctx.globalCompositeOperation = 'destination-out';
                     ctx.beginPath();
@@ -196,28 +251,57 @@
                     ctx.fill();
                 };
 
-                const startDrawing = () => isDrawing = true;
+                const startDrawing = (e) => { e.preventDefault && e.preventDefault(); isDrawing = true; };
                 const stopDrawing = () => isDrawing = false;
 
+                // Usa named handlers per evitare multipli handlers se la funzione viene chiamata ripetutamente
                 canvas.addEventListener('mousedown', startDrawing);
-                canvas.addEventListener('touchstart', startDrawing);
+                canvas.addEventListener('touchstart', startDrawing, { passive: false });
                 window.addEventListener('mouseup', stopDrawing);
                 window.addEventListener('touchend', stopDrawing);
                 canvas.addEventListener('mousemove', scratch);
-                canvas.addEventListener('touchmove', scratch);
+                canvas.addEventListener('touchmove', scratch, { passive: false });
+            });
+
+            // Gestione resize per ridimensionare i canvas se la finestra cambia dimensione
+            window.addEventListener('resize', () => {
+                // breve debounce
+                if (window._scratchResizeTimeout) clearTimeout(window._scratchResizeTimeout);
+                window._scratchResizeTimeout = setTimeout(() => {
+                    const canvases = document.querySelectorAll('.scratch-canvas');
+                    canvases.forEach(c => {
+                        const container = c.parentElement;
+                        const ctx = c.getContext('2d');
+                        const ratio = window.devicePixelRatio || 1;
+                        const width = container.offsetWidth;
+                        const height = container.offsetHeight;
+                        c.width = Math.floor(width * ratio);
+                        c.height = Math.floor(height * ratio);
+                        c.style.width = width + 'px';
+                        c.style.height = height + 'px';
+                        ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+                        // riapplica patina (se vuoi mantenere lo stato graffiato, rimuovi questa ri-draw)
+                        ctx.fillStyle = '#bdc3c7';
+                        ctx.fillRect(0, 0, width, height);
+                        ctx.fillStyle = '#7f8c8d';
+                        ctx.font = 'bold 16px sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.fillText('GRATTA QUI', width/2, height/2 + 6);
+                    });
+                }, 120);
             });
         }
 
         function selectGift(name) {
             selectedName = name;
-            confetti({ particleCount: 40, spread: 60, origin: { y: 0.8 } });
+            try { confetti({ particleCount: 40, spread: 60, origin: { y: 0.8 } }); } catch(e) {}
             const btn = document.getElementById('confirm-btn');
             btn.style.display = 'block';
             btn.innerText = "CONFERMA: " + name;
         }
 
         function confirmSelection() {
-            confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });
+            try { confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } }); } catch(e) {}
             document.getElementById('main-content').style.display = 'none';
             document.getElementById('final-screen').style.display = 'block';
             document.getElementById('final-gift-name').innerText = selectedName;
@@ -225,14 +309,16 @@
         }
 
         function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
             let time = 24 * 60 * 60;
             const display = document.getElementById('timer');
-            setInterval(() => {
+            timerInterval = setInterval(() => {
                 let h = Math.floor(time / 3600);
                 let m = Math.floor((time % 3600) / 60);
                 let s = time % 60;
                 display.innerText = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
                 if (time > 0) time--;
+                else clearInterval(timerInterval);
             }, 1000);
         }
     </script>
